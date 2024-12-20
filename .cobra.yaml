@@ -1,0 +1,8 @@
+author: weak_ptr <weak_ptr@163.com>
+year: 2024
+license:
+  header: This file is apart of the project media-vault. All rights reserved.
+  text: |
+    {{ .copyright }}
+
+    All rights reserved.
