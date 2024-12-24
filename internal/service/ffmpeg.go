@@ -13,6 +13,11 @@ import (
 	"gorm.io/gorm"
 )
 
+const (
+	CoverWidth  = 200
+	CoverHeight = 200
+)
+
 type FFMPEGService struct {
 	db   *gorm.DB
 	path string
@@ -52,7 +57,8 @@ func (s *FFMPEGService) ExtractCoverInBackground(src, dest string) error {
 // runExtractCoverTask 提取封面任务
 func (s *FFMPEGService) runExtractCoverTask(src, dest string, task *models.Task) {
 	stderr := &bytes.Buffer{}
-	cmd := exec.Command(s.path, "-i", src, "-vframes", "1", dest)
+	vf := fmt.Sprintf("scale=%d:%d:force_original_aspect_ratio=1,pad=%d:%d:-1:-1:color=black", CoverWidth, CoverHeight, CoverWidth, CoverHeight)
+	cmd := exec.Command(s.path, "-i", src, "-vframes", "1", "-vf", vf, "-y", dest)
 	cmd.Stderr = stderr
 
 	logging.GetLogger().Info("execute ffmpeg command", zap.String("command", cmd.String()))
