@@ -29,5 +29,6 @@ go.work.sum
 .idea/
 
 bin/
+data/
 media-vault.db
 media-vault.log
