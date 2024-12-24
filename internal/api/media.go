@@ -30,7 +30,21 @@ func (controller *MediaControllerV1) RegisterRoutes(router gin.IRouter) {
 
 // MediaListV1 列出媒体
 func (controller *MediaControllerV1) MediaListV1(c *gin.Context) {
-	medias, err := controller.s.List(service.WithOrderBy("", true), service.WithPaginate(1, 10))
+	var req struct {
+		Pagination
+		OrderBy
+	}
+	if err := c.BindJSON(&req); err != nil {
+		logging.GetLogger().Error("failed to bind json", zap.Error(err))
+		c.AbortWithStatusJSON(http.StatusBadRequest, BadRequest(err))
+		return
+	}
+
+	options := []service.QueryOption{
+		req.OrderBy.WithDefault().QueryOption(),
+		req.Pagination.WithDefault().QueryOption(),
+	}
+	medias, err := controller.s.List(options...)
 	if err != nil {
 		logging.GetLogger().Error("failed to list media", zap.Error(err))
 		c.AbortWithStatusJSON(http.StatusInternalServerError, ServerError(err))
@@ -44,7 +58,22 @@ func (controller *MediaControllerV1) MediaDetailV1(c *gin.Context) {
 }
 
 func (controller *MediaControllerV1) MediaAddV1(c *gin.Context) {
-	logging.GetLogger().Panic("not implemented")
+	var req struct {
+		Paths []string `json:"paths"`
+	}
+	if err := c.BindJSON(&req); err != nil {
+		logging.GetLogger().Error("failed to bind json", zap.Error(err))
+		c.AbortWithStatusJSON(http.StatusBadRequest, BadRequest(err))
+		return
+	}
+
+	medias, err := controller.s.Add(req.Paths...)
+	if err != nil {
+		logging.GetLogger().Error("failed to add media", zap.Error(err))
+		c.AbortWithStatusJSON(http.StatusInternalServerError, ServerError(err))
+		return
+	}
+	c.JSON(http.StatusOK, OK(medias))
 }
 
 func (controller *MediaControllerV1) MediaUpdateV1(c *gin.Context) {

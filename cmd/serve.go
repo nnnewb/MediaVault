@@ -58,7 +58,8 @@ var serveCmd = &cobra.Command{
 		}
 
 		// setup service
-		mediaService := service.NewMediaService(db)
+		inferService := service.NewMediaInfer()
+		mediaService := service.NewMediaService(db, inferService)
 
 		// setup controller
 		mediaControllerV1 := api.NewMediaControllerV1(mediaService)

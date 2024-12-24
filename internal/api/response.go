@@ -24,6 +24,10 @@ func OK(data any) *Response {
 	return NewResponse(0, "OK", data)
 }
 
+func BadRequest(err error) *Response {
+	return NewResponse(2, "Bad Request: "+err.Error(), nil)
+}
+
 func ServerError(err error) *Response {
 	return NewResponse(1, "Server Error: "+err.Error(), nil)
 }
