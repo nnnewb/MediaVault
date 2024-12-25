@@ -5,7 +5,9 @@ import (
 	"path/filepath"
 
 	"gitee.com/uniqptr/media-vault.git/internal/constants"
+	"gitee.com/uniqptr/media-vault.git/internal/logging"
 	"gitee.com/uniqptr/media-vault.git/internal/models"
+	"go.uber.org/zap"
 
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
@@ -30,11 +32,12 @@ func NewMediaService(db *gorm.DB, dataRoot string, infer *MediaInfer, ff *FFMPEG
 func (s *MediaService) List(options ...QueryOption) ([]*models.Media, error) {
 	var medias []*models.Media
 	err := s.db.Transaction(func(tx *gorm.DB) error {
+		tx = tx.Model(&models.Media{})
 		for _, option := range options {
 			option(tx)
 		}
 
-		return tx.Find(&medias).Error
+		return tx.Preload("MediaCover").Find(&medias).Error
 	})
 	return medias, errors.WithStack(err)
 }
@@ -53,9 +56,65 @@ func (s *MediaService) Add(paths ...string) ([]*models.Media, error) {
 
 	for _, media := range medias {
 		if media.MediaType == models.MediaTypeVideo {
-			s.ff.ExtractCoverInBackground(media.Path, filepath.Join(s.coverRoot, fmt.Sprintf("%d.jpg", media.ID)))
+			s.extractCoverInBackground(media)
 		}
 	}
 
 	return medias, errors.WithStack(err)
+}
+
+func (s *MediaService) extractCoverInBackground(media *models.Media) error {
+	src := media.Path
+	dest := filepath.Join(s.coverRoot, fmt.Sprintf("%d.jpg", media.ID))
+
+	logging.GetLogger().Info("extract cover in background", zap.String("src", media.Path), zap.String("dest", dest))
+	// create task
+	task := &models.Task{
+		Name:             "extract cover",
+		Description:      fmt.Sprintf("extract cover from %s to %s", src, dest),
+		StatusString:     "running",
+		Status:           models.TaskStatusRunning,
+		Category:         models.TaskCategoryMediaDiscover,
+		ProgressComplete: 0,
+		ProgressTotal:    1,
+	}
+	err := s.db.Create(task).Error
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	// fire and forget
+	go s.runExtractCoverTask(src, dest, media, task)
+
+	return nil
+
+}
+
+// runExtractCoverTask 提取封面任务
+func (s *MediaService) runExtractCoverTask(src, dest string, media *models.Media, task *models.Task) {
+	err := s.ff.ExtractCoverInBackground(src, dest)
+	if err != nil {
+		logging.GetLogger().Error("extract cover failed", zap.Error(err))
+		task.Status = models.TaskStatusFailed
+		task.StatusString = "error: " + err.Error()
+	}
+
+	mc := &models.MediaCover{
+		MediaID: media.ID,
+		Path:    dest,
+	}
+	err = s.db.Create(mc).Error
+	if err != nil {
+		logging.GetLogger().Error("save media cover failed", zap.Error(err))
+		task.Status = models.TaskStatusFailed
+		task.StatusString = "error: " + err.Error()
+	}
+
+	task.ProgressTotal = 1
+	task.ProgressComplete = 1
+
+	err = s.db.Save(task).Error
+	if err != nil {
+		logging.GetLogger().Error("save task failed", zap.Error(err))
+	}
 }

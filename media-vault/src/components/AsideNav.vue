@@ -3,7 +3,7 @@
 
 <template>
     <el-menu default-active="1" class="aside-menu">
-        <el-menu-item index="1">
+        <el-menu-item route="/" index="1">
             <el-icon>
                 <House />
             </el-icon>

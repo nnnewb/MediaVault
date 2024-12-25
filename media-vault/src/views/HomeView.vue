@@ -1,9 +1,20 @@
 <script setup>
-const medias = [
-];
-for (let i = 0; i < 20; i++) {
-  medias.push({ path: `${i}.mkv`, cover: null })
-}
+import { inject, ref, reactive } from 'vue';
+
+const page = ref(1);
+const page_size = ref(10);
+const axios = inject('axios');
+
+const medias = reactive([]);
+
+axios.post('/api/v1/media/list', { 'page': page.value, 'page_size': page_size.value, }).then(resp => {
+  if (resp.data.code !== 0) {
+    console.error(resp.data.message);
+    return
+  }
+
+  medias.push(...resp.data.data);
+})
 </script>
 
 <template>

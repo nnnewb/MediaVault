@@ -12,7 +12,10 @@ import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 export default defineConfig({
   server: {
     proxy: {
-      '/api': 'http://localhost:39876'
+      '/api': {
+        target: 'http://localhost:39876',
+        changeOrigin: true,
+      }
     }
   },
   plugins: [

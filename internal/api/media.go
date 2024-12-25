@@ -7,6 +7,7 @@ import (
 	"go.uber.org/zap"
 
 	"gitee.com/uniqptr/media-vault.git/internal/logging"
+	"gitee.com/uniqptr/media-vault.git/internal/models"
 	"gitee.com/uniqptr/media-vault.git/internal/service"
 )
 
@@ -44,13 +45,19 @@ func (controller *MediaControllerV1) MediaListV1(c *gin.Context) {
 		req.OrderBy.WithDefault().QueryOption(),
 		req.Pagination.WithDefault().QueryOption(),
 	}
+
 	medias, err := controller.s.List(options...)
 	if err != nil {
 		logging.GetLogger().Error("failed to list media", zap.Error(err))
 		c.AbortWithStatusJSON(http.StatusInternalServerError, ServerError(err))
 		return
 	}
-	c.JSON(http.StatusOK, NewResponse(0, "OK", medias))
+
+	data := make([]models.MediaDTO, len(medias))
+	for i := 0; i < len(medias); i++ {
+		medias[i].AsDTO(&data[i])
+	}
+	c.JSON(http.StatusOK, NewResponse(0, "OK", data))
 }
 
 func (controller *MediaControllerV1) MediaDetailV1(c *gin.Context) {
