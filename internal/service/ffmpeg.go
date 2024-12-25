@@ -14,8 +14,8 @@ import (
 )
 
 const (
-	CoverWidth  = 200
-	CoverHeight = 200
+	CoverWidth  = 400
+	CoverHeight = 300
 )
 
 type FFMPEGService struct {

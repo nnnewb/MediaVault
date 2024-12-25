@@ -3,6 +3,11 @@
     margin: 0;
 }
 
-html {
+html,body {
     background-color: #fafafa;
+    height: 100%;
+}
+
+#app {
+    height: 100%;
 }

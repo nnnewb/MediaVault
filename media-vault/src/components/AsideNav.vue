@@ -1,7 +1,9 @@
-<script setup></script>
+<script setup>
+</script>
+
 <template>
-    <el-menu>
-        <el-menu-item>
+    <el-menu default-active="1" class="aside-menu">
+        <el-menu-item index="1">
             <el-icon>
                 <House />
             </el-icon>
@@ -10,4 +12,8 @@
     </el-menu>
 </template>
 
-<style scoped></style>
+<style scoped>
+.aside-menu {
+    height: 100%;
+}
+</style>
