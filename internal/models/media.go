@@ -1,6 +1,7 @@
 package models
 
 import (
+	"path/filepath"
 	"time"
 
 	"gorm.io/gorm"
@@ -38,6 +39,7 @@ func (m *Media) AsDTO(d *MediaDTO) {
 	d.UpdatedAt = m.UpdatedAt
 	d.DeletedAt = m.DeletedAt
 	d.Path = m.Path
+	d.Name = filepath.Base(m.Path)
 	d.MediaType = m.MediaType
 	d.InformationID = m.InformationID
 	if m.MediaCover != nil {
@@ -51,6 +53,7 @@ type MediaDTO struct {
 	UpdatedAt     time.Time      `json:"updated_at"`
 	DeletedAt     gorm.DeletedAt `json:"deleted_at"`
 	Path          string         `json:"path"`
+	Name          string         `json:"name"`
 	MediaType     MediaType      `json:"media_type"`
 	InformationID int64          `json:"information_id"`
 	CoverID       uint           `json:"cover_id"`

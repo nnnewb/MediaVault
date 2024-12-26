@@ -30,6 +30,7 @@ func (controller *MediaControllerV1) RegisterRoutes(router gin.IRouter) {
 	g.POST("/media/add", controller.MediaAddV1)
 	g.POST("/media/update", controller.MediaUpdateV1)
 	g.GET("/media/cover/:id", controller.MediaCoverDownloadV1)
+	g.GET("/media/video/:id", controller.VideoDownloadV1)
 }
 
 // MediaListV1 列出媒体
@@ -118,4 +119,35 @@ func (controller *MediaControllerV1) MediaCoverDownloadV1(c *gin.Context) {
 
 	c.Header("Content-Type", "image/jpeg")
 	c.File(cover.Path)
+}
+
+func (controller *MediaControllerV1) VideoDownloadV1(c *gin.Context) {
+	var req struct {
+		ID uint `uri:"id" binding:"required"`
+	}
+	if err := c.BindUri(&req); err != nil {
+		logging.GetLogger().Error("failed to bind uri", zap.Error(err))
+		c.AbortWithStatusJSON(http.StatusBadRequest, BadRequest(err))
+		return
+	}
+
+	video, err := controller.s.GetMedia(req.ID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.AbortWithStatus(http.StatusBadRequest)
+			return
+		}
+
+		logging.GetLogger().Error("failed to get media", zap.Error(err))
+		c.AbortWithStatusJSON(http.StatusInternalServerError, ServerError(err))
+		return
+	}
+
+	if video.MediaType != models.MediaTypeVideo {
+		logging.GetLogger().Error("media is not a video")
+		c.AbortWithStatusJSON(http.StatusBadRequest, BadRequest(errors.New("media is not a video")))
+		return
+	}
+
+	c.File(video.Path)
 }

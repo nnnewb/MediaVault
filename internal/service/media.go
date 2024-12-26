@@ -125,3 +125,10 @@ func (s *MediaService) GetCover(id uint) (*models.MediaCover, error) {
 	err := s.db.Model(&models.MediaCover{}).Where("id=?", id).Take(cover).Error
 	return cover, errors.WithStack(err)
 }
+
+// GetMedia 获取媒体信息
+func (s *MediaService) GetMedia(id uint) (*models.Media, error) {
+	media := &models.Media{}
+	err := s.db.Model(&models.Media{}).Where("id=?", id).Take(media).Error
+	return media, errors.WithStack(err)
+}

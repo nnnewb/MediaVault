@@ -1,5 +1,4 @@
 <script setup>
-import dayjs from 'dayjs';
 import { inject, ref, reactive } from 'vue';
 
 const page = ref(1);
@@ -8,6 +7,7 @@ const axios = inject('axios');
 
 const searchForm = reactive({
   search: '',
+  displayType: 'list',
 });
 const medias = reactive([]);
 
@@ -28,32 +28,28 @@ axios.post('/api/v1/media/list', { 'page': page.value, 'page_size': page_size.va
         <el-form-item>
           <el-input type="text" placeholder="输入开始搜索" v-model="searchForm.search" prefix-icon="Search" clearable />
         </el-form-item>
+        <el-form-item label="视图模式">
+          <el-radio-group v-model="searchForm.displayType">
+            <el-radio-button value="grid">
+              照片墙
+              <el-icon>
+                <grid />
+              </el-icon>
+            </el-radio-button>
+            <el-radio-button value="list">
+              列表
+              <el-icon>
+                <list />
+              </el-icon>
+            </el-radio-button>
+          </el-radio-group>
+        </el-form-item>
       </el-form>
     </el-row>
 
-    <el-table :data="medias">
-      <el-table-column prop="id" label="id" width="100" />
-      <el-table-column label="封面" width="300">
-        <template #default="scope">
-          <el-image :src="'/api/v1/media/cover/' + scope.row.cover_id" v-if="scope.row.cover_id" />
-          <el-text v-else>没有封面</el-text>
-        </template>
-      </el-table-column>
-      <el-table-column label="创建时间" width="300">
-        <template #default="scope">
-          <el-icon>
-            <timer />
-          </el-icon>
-          {{ dayjs(scope.row.created_at).format('YYYY-MM-DD HH:mm:ssZ') }}
-        </template>
-      </el-table-column>
-      <el-table-column prop="path" label="路径" />
-    </el-table>
+    <media-list-view :data="medias" v-if="searchForm.displayType === 'list'" />
+    <media-grid-view :data="medias" v-else-if="searchForm.displayType == 'grid'" />
   </el-container>
 </template>
 
-<style scoped>
-.row {
-  gap: 7px;
-}
-</style>
+<style scoped></style>

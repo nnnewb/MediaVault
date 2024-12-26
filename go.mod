@@ -1,6 +1,6 @@
 module gitee.com/uniqptr/media-vault.git
 
-go 1.18
+go 1.23.4
 
 require (
 	github.com/gin-gonic/gin v1.10.0
