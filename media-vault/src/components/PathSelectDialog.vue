@@ -1,5 +1,12 @@
 <script setup>
-import { inject } from 'vue';
+import { inject, defineProps } from 'vue';
+
+const props = defineProps({
+    select_dir: {
+        type: Boolean,
+        default: false
+    }
+})
 
 const axios = inject('axios');
 const tree_props = {
