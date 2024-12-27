@@ -14,6 +14,16 @@ func NewTaskService(db *gorm.DB) *TaskService {
 	return &TaskService{db: db}
 }
 
+func (t *TaskService) List(options ...QueryOption) ([]models.Task, error) {
+	var tasks []models.Task
+	tx := t.db.Model(&models.Task{})
+	for _, option := range options {
+		option(tx)
+	}
+	err := tx.Preload("Tags").Find(&tasks).Error
+	return tasks, errors.WithStack(err)
+}
+
 func (t *TaskService) Advance(id uint, progress int) error {
 	err := t.db.
 		Model(&models.Task{}).
