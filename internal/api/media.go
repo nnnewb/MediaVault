@@ -8,9 +8,9 @@ import (
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 
-	"gitee.com/uniqptr/media-vault.git/internal/logging"
-	"gitee.com/uniqptr/media-vault.git/internal/models"
-	"gitee.com/uniqptr/media-vault.git/internal/service"
+	"github.com/nnnewb/media-vault/internal/logging"
+	"github.com/nnnewb/media-vault/internal/models"
+	"github.com/nnnewb/media-vault/internal/service"
 )
 
 type MediaControllerV1 struct {
@@ -28,6 +28,7 @@ func (controller *MediaControllerV1) RegisterRoutes(router gin.IRouter) {
 	g.POST("/media/list", controller.MediaListV1)
 	g.POST("/media/detail", controller.MediaDetailV1)
 	g.POST("/media/add", controller.MediaAddV1)
+	g.POST("/media/scan", controller.MediaScanV1)
 	g.POST("/media/update", controller.MediaUpdateV1)
 	g.GET("/media/cover/:id", controller.MediaCoverDownloadV1)
 	g.GET("/media/video/:id", controller.VideoDownloadV1)
@@ -85,6 +86,27 @@ func (controller *MediaControllerV1) MediaAddV1(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, OK(medias))
+}
+
+// MediaScanV1 扫描指定目录下所有视频文件加入媒体库
+func (controller *MediaControllerV1) MediaScanV1(c *gin.Context) {
+	var req struct {
+		Paths []string `json:"paths"`
+	}
+	if err := c.BindJSON(&req); err != nil {
+		logging.GetLogger().Error("failed to bind json", zap.Error(err))
+		c.AbortWithStatusJSON(http.StatusBadRequest, BadRequest(err))
+		return
+	}
+
+	err := controller.s.StartScanMedia(req.Paths...)
+	if err != nil {
+		logging.GetLogger().Error("failed to start scan", zap.Error(err))
+		c.AbortWithStatusJSON(http.StatusInternalServerError, ServerError(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, OK(nil))
 }
 
 func (controller *MediaControllerV1) MediaUpdateV1(c *gin.Context) {

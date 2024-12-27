@@ -1,4 +1,4 @@
-module gitee.com/uniqptr/media-vault.git
+module github.com/nnnewb/media-vault
 
 go 1.23.4
 

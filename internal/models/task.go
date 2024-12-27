@@ -32,13 +32,13 @@ func (s TaskStatus) String() string {
 
 type Task struct {
 	gorm.Model
-	Name             string
-	Description      string
-	StatusString     string
-	Status           TaskStatus
-	Category         string
-	ProgressComplete int
-	ProgressTotal    int
+	Name             string     `gorm:"name"`
+	Description      string     `gorm:"description"`
+	StatusString     string     `gorm:"status_string"`
+	Status           TaskStatus `gorm:"status"`
+	Category         string     `gorm:"category"`
+	ProgressComplete int        `gorm:"progress_complete"`
+	ProgressTotal    int        `gorm:"progress_total"`
 }
 
 func (*Task) TableName() string {
@@ -46,7 +46,7 @@ func (*Task) TableName() string {
 }
 
 type TaskTag struct {
-	TaskID  int    `gorm:"task_id"`
+	TaskID  uint   `gorm:"task_id"`
 	TaskTag string `gorm:"task_tag"`
 }
 

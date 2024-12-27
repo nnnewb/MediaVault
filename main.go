@@ -4,7 +4,7 @@ This file is apart of the project media-vault. All rights reserved.
 */
 package main
 
-import "gitee.com/uniqptr/media-vault.git/cmd"
+import "github.com/nnnewb/media-vault/cmd"
 
 func main() {
 	cmd.Execute()

@@ -6,7 +6,7 @@ import (
 	"github.com/pkg/errors"
 	"golang.org/x/sys/windows"
 
-	"gitee.com/uniqptr/media-vault.git/internal/models"
+	"github.com/nnnewb/media-vault/internal/models"
 )
 
 func (s *PathService) ListRoot() ([]models.PathEntry, error) {

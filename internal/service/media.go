@@ -2,11 +2,12 @@ package service
 
 import (
 	"fmt"
+	"io/fs"
 	"path/filepath"
 
-	"gitee.com/uniqptr/media-vault.git/internal/constants"
-	"gitee.com/uniqptr/media-vault.git/internal/logging"
-	"gitee.com/uniqptr/media-vault.git/internal/models"
+	"github.com/nnnewb/media-vault/internal/constants"
+	"github.com/nnnewb/media-vault/internal/logging"
+	"github.com/nnnewb/media-vault/internal/models"
 	"go.uber.org/zap"
 
 	"github.com/pkg/errors"
@@ -17,14 +18,16 @@ type MediaService struct {
 	db        *gorm.DB
 	infer     *MediaInfer
 	ff        *FFMPEGService
+	task      *TaskService
 	coverRoot string
 }
 
-func NewMediaService(db *gorm.DB, dataRoot string, infer *MediaInfer, ff *FFMPEGService) *MediaService {
+func NewMediaService(db *gorm.DB, dataRoot string, infer *MediaInfer, ff *FFMPEGService, task *TaskService) *MediaService {
 	return &MediaService{
 		db:        db,
 		infer:     infer,
 		ff:        ff,
+		task:      task,
 		coverRoot: filepath.Join(dataRoot, constants.DataFolderCovers),
 	}
 }
@@ -56,11 +59,58 @@ func (s *MediaService) Add(paths ...string) ([]*models.Media, error) {
 
 	for _, media := range medias {
 		if media.MediaType == models.MediaTypeVideo {
-			s.extractCoverInBackground(media)
+			err = s.extractCoverInBackground(media)
+			if err != nil {
+				logging.GetLogger().Error("extract cover failed", zap.Error(err))
+			}
 		}
 	}
 
 	return medias, errors.WithStack(err)
+}
+
+// StartScanMedia 启动后台任务，扫描指定目录下的媒体文件
+func (s *MediaService) StartScanMedia(paths ...string) error {
+	for _, path := range paths {
+		task, err := s.task.CreateTask(fmt.Sprintf("scan %s", path), fmt.Sprintf("scan %s", path), models.TaskCategoryMediaDiscover, []string{}, 1)
+		if err != nil {
+			return err
+		}
+
+		go s.scanInBackground(path, task)
+	}
+
+	return nil
+}
+
+// runScanInBackground 后台扫描目录下的媒体文件
+func (s *MediaService) scanInBackground(path string, task *models.Task) {
+	err := filepath.WalkDir(path, func(p string, d fs.DirEntry, err error) error {
+		if err != nil {
+			logging.GetLogger().Error("walk dir failed", zap.String("path", p), zap.Error(err))
+			return nil
+		}
+
+		if d.IsDir() {
+			return nil
+		}
+
+		if s.infer.InferMediaType(p) == models.MediaTypeVideo {
+			_, err = s.Add(p)
+			if err != nil {
+				logging.GetLogger().Error("add media failed", zap.String("path", p), zap.Error(err))
+				return nil
+			}
+		}
+
+		return nil
+	})
+	if err != nil {
+		err = s.task.FailTask(task.ID)
+		if err != nil {
+			logging.GetLogger().Error("mark task fail failed", zap.Error(err))
+		}
+	}
 }
 
 func (s *MediaService) extractCoverInBackground(media *models.Media) error {
@@ -69,18 +119,9 @@ func (s *MediaService) extractCoverInBackground(media *models.Media) error {
 
 	logging.GetLogger().Info("extract cover in background", zap.String("src", media.Path), zap.String("dest", dest))
 	// create task
-	task := &models.Task{
-		Name:             "extract cover",
-		Description:      fmt.Sprintf("extract cover from %s to %s", src, dest),
-		StatusString:     "running",
-		Status:           models.TaskStatusRunning,
-		Category:         models.TaskCategoryMediaDiscover,
-		ProgressComplete: 0,
-		ProgressTotal:    1,
-	}
-	err := s.db.Create(task).Error
+	task, err := s.task.CreateTask("extract cover", fmt.Sprintf("extract cover from %s to %s", src, dest), models.TaskCategoryMediaDiscover, []string{}, 1)
 	if err != nil {
-		return errors.WithStack(err)
+		return err
 	}
 
 	// fire and forget
@@ -95,8 +136,11 @@ func (s *MediaService) runExtractCoverTask(src, dest string, media *models.Media
 	err := s.ff.ExtractCoverInBackground(src, dest)
 	if err != nil {
 		logging.GetLogger().Error("extract cover failed", zap.Error(err))
-		task.Status = models.TaskStatusFailed
-		task.StatusString = "error: " + err.Error()
+		err = s.task.FailTask(task.ID)
+		if err != nil {
+			logging.GetLogger().Error("mark task fail failed", zap.Uint("task_id", task.ID), zap.Error(err))
+		}
+		return
 	}
 
 	mc := &models.MediaCover{
@@ -106,17 +150,18 @@ func (s *MediaService) runExtractCoverTask(src, dest string, media *models.Media
 	err = s.db.Create(mc).Error
 	if err != nil {
 		logging.GetLogger().Error("save media cover failed", zap.Error(err))
-		task.Status = models.TaskStatusFailed
-		task.StatusString = "error: " + err.Error()
+		err = s.task.FailTask(task.ID)
+		if err != nil {
+			logging.GetLogger().Error("mark task fail failed", zap.Uint("task_id", task.ID), zap.Error(err))
+		}
+		return
 	}
 
-	task.ProgressTotal = 1
-	task.ProgressComplete = 1
-
-	err = s.db.Save(task).Error
+	err = s.task.FinishTask(task.ID)
 	if err != nil {
-		logging.GetLogger().Error("save task failed", zap.Error(err))
+		logging.GetLogger().Error("mark task finish failed", zap.Uint("task_id", task.ID), zap.Error(err))
 	}
+	return
 }
 
 // GetCover 获取封面信息

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os/exec"
 
-	"gitee.com/uniqptr/media-vault.git/internal/logging"
+	"github.com/nnnewb/media-vault/internal/logging"
 
 	"github.com/pkg/errors"
 	"go.uber.org/zap"

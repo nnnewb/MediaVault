@@ -1,5 +1,10 @@
 <script setup>
-import { inject, ref, reactive } from "vue";
+import { inject, reactive, ref } from "vue";
+import { ElButton, ElContainer, ElForm, ElFormItem, ElIcon, ElInput, ElRow, ElSegmented } from "element-plus";
+import { Plus } from "@element-plus/icons-vue";
+import PathSelectDialog from "@/components/PathSelectDialog.vue";
+import MediaListView from "@/components/MediaListView.vue";
+import MediaGridView from "@/components/MediaGridView.vue";
 
 const page = ref(1);
 const page_size = ref(10);
@@ -24,16 +29,32 @@ const searchForm = reactive({
 });
 const medias = reactive([]);
 
-axios
-  .post("/api/v1/media/list", { page: page.value, page_size: page_size.value })
-  .then((resp) => {
+function confirm_scan(path) {
+  axios.post("/api/v1/media/scan", { paths: [path] }).then(resp => {
     if (resp.data.code !== 0) {
       console.error(resp.data.message);
-      return;
     }
-
-    medias.push(...resp.data.data);
+  }).then(() => {
+    show_path_select_dialog.value = false;
+    load_medias(1, 20);
   });
+}
+
+function load_medias(page, page_size) {
+  const payload = { page, page_size };
+  axios
+    .post("/api/v1/media/list", payload)
+    .then((resp) => {
+      if (resp.data.code !== 0) {
+        console.error(resp.data.message);
+        return;
+      }
+
+      medias.push(...resp.data.data);
+    });
+}
+
+load_medias(1, 20);
 </script>
 
 <template>
@@ -79,11 +100,11 @@ axios
       </el-form>
     </el-row>
 
-    <path-select-dialog v-model="show_path_select_dialog" />
+    <path-select-dialog v-model="show_path_select_dialog" @choose="confirm_scan" />
     <media-list-view :data="medias" v-if="searchForm.displayType === 'list'" />
     <media-grid-view
       :data="medias"
-      v-else-if="searchForm.displayType == 'grid'"
+      v-else-if="searchForm.displayType === 'grid'"
     />
   </el-container>
 </template>

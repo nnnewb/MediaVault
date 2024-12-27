@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"gitee.com/uniqptr/media-vault.git/internal/models"
+	"github.com/nnnewb/media-vault/internal/models"
 )
 
 type MediaInfer struct {

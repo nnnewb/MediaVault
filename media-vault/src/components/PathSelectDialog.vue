@@ -1,11 +1,5 @@
 <script setup>
-import {
-  ArrowLeft,
-  Check,
-  Document,
-  Folder,
-  Refresh,
-} from "@element-plus/icons-vue";
+import { ArrowLeft, Check, Document, Folder, Refresh } from "@element-plus/icons-vue";
 import dayjs from "dayjs";
 import {
   ElButton,
@@ -21,10 +15,15 @@ import {
   ElText,
   ElTooltip,
 } from "element-plus";
-import { defineProps, inject, reactive, ref } from "vue";
+import { defineEmits, defineProps, inject, reactive, ref } from "vue";
 
+const emits = defineEmits(["choose"]);
 const props = defineProps({
-  select_dir: {
+  choose_dir: {
+    type: Boolean,
+    default: false,
+  },
+  multiple: {
     type: Boolean,
     default: false,
   },
@@ -80,11 +79,15 @@ function refresh() {
   choosed_path.value = "";
 }
 
+function confirm() {
+  emits("choose", current_path.value);
+}
+
 load_entries("");
 </script>
 
 <template>
-  <el-dialog title="选择路径" width="800">
+  <el-dialog ref="dialog" title="选择路径" width="800">
     <el-container direction="vertical">
       <el-row>
         <el-col :span="24">
@@ -119,7 +122,7 @@ load_entries("");
             @row-dblclick="enter_dir"
             :max-height="400"
           >
-            <el-table-column label="类型" width="80" sortable>
+            <el-table-column prop="is_dir" label="类型" width="80" sortable>
               <template #default="scope">
                 <el-icon>
                   <folder v-if="scope.row.is_dir" />
@@ -138,8 +141,9 @@ load_entries("");
                 >
                   <el-tooltip placement="top" :content="scope.row.name">
                     <el-text style="user-select: none">{{
-                      scope.row.name
-                    }}</el-text>
+                        scope.row.name
+                      }}
+                    </el-text>
                   </el-tooltip>
                 </div>
               </template>
@@ -152,8 +156,9 @@ load_entries("");
             >
               <template #default="scope">
                 <el-text style="user-select: none">{{
-                  dayjs(scope.row.updated_at).format("YYYY-MM-DD HH:mm:ss")
-                }}</el-text>
+                    dayjs(scope.row.updated_at).format("YYYY-MM-DD HH:mm:ss")
+                  }}
+                </el-text>
               </template>
             </el-table-column>
           </el-table>
@@ -169,7 +174,7 @@ load_entries("");
         </el-col>
 
         <el-col :push="1" :span="2">
-          <el-button type="primary">
+          <el-button type="primary" @click="confirm">
             <el-icon>
               <check />
             </el-icon>
