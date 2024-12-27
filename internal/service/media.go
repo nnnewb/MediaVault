@@ -111,6 +111,10 @@ func (s *MediaService) scanInBackground(path string, task *models.Task) {
 			logging.GetLogger().Error("mark task fail failed", zap.Error(err))
 		}
 	}
+	err = s.task.FinishTask(task.ID)
+	if err != nil {
+		logging.GetLogger().Error("mark task finish failed", zap.Error(err))
+	}
 }
 
 func (s *MediaService) extractCoverInBackground(media *models.Media) error {
