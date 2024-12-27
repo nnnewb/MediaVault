@@ -31,4 +31,5 @@ go.work.sum
 bin/
 data/
 media-vault.db
+media-vault.db-journal
 media-vault.log

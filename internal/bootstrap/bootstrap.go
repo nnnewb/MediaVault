@@ -28,9 +28,11 @@ func BootstrapDatabase(db *gorm.DB) error {
 		&models.Media{},
 		&models.MediaCover{},
 		&models.MediaRelation{},
-		&models.AnimeInformation{},
-		&models.AnimeLocalization{},
+		&models.Anime{},
+		&models.AnimeTag{},
+		&models.AnimeEpisode{},
 		&models.Subtitle{},
+		&models.AnimeThumbnail{},
 		&models.Task{},
 		&models.TaskTag{},
 	)
