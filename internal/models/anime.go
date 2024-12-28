@@ -1,6 +1,8 @@
 package models
 
 import (
+	"time"
+
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
@@ -37,6 +39,40 @@ type Anime struct {
 }
 
 func (*Anime) TableName() string { return "anime" }
+
+func (a *Anime) ToDTO() *AnimeDTO {
+	var dto AnimeDTO
+	a.AsDTO(&dto)
+	return &dto
+}
+
+func (a *Anime) AsDTO(dto *AnimeDTO) {
+	dto.ID = a.ID
+	dto.CreatedAt = a.CreatedAt
+	dto.UpdatedAt = a.UpdatedAt
+	dto.Title = a.Title
+	dto.Synonyms = a.Synonyms
+	dto.TotalEpisodes = a.TotalEpisodes
+	dto.ReleaseYear = a.ReleaseYear
+	dto.Season = a.Season
+	dto.Status = a.Status
+	for _, tag := range a.Tags {
+		dto.Tags = append(dto.Tags, tag.Tag)
+	}
+}
+
+type AnimeDTO struct {
+	ID            uint        `json:"id"`
+	CreatedAt     time.Time   `json:"created_at"`
+	UpdatedAt     time.Time   `json:"updated_at"`
+	Title         string      `json:"title"`
+	Synonyms      []string    `json:"synonyms"`
+	TotalEpisodes int32       `json:"total_episodes"`
+	ReleaseYear   int32       `json:"release_year"`
+	Season        AnimeSeason `json:"season"`
+	Status        AnimeStatus `json:"status"`
+	Tags          []string    `json:"tags"`
+}
 
 type AnimeTag struct {
 	ID      uint   `gorm:"primaryKey"` //

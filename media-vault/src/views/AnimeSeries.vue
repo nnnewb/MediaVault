@@ -1,53 +1,50 @@
 <script setup>
-import { reactive } from "vue";
+import { inject, onMounted, reactive, ref } from "vue";
+import { AnimeClient } from "@/api.js";
+
+const axios = inject("axios");
+const anime_client = new AnimeClient(axios);
 
 const view_types = [
-  {
-    label: "网格",
-    value: "grid",
-    icon: "grid",
-  },
-  {
-    label: "列表",
-    value: "list",
-    icon: "list",
-  },
+  { label: "网格", value: "grid", icon: "grid" },
+  { label: "列表", value: "list", icon: "list" },
 ];
 const searchForm = reactive({
   search: "",
   displayType: "list",
 });
-const data = reactive([]);
-for (let index = 0; index < 10; index++) {
-  data.push({
-    title: `yuru yuri`,
-    release: `2022-01-01`,
-    episode: `12`,
-    status: `已完结`,
-  });
+const data = ref([]);
+
+function fetch_data(page, page_size) {
+  anime_client
+    .list(page, page_size)
+    .then((resp) => {
+      if (resp.code !== 0) {
+        console.error(resp.message);
+        return;
+      }
+
+      data.value = resp.data.data;
+    })
+    .catch((err) => {
+      console.error(err);
+    });
 }
+
+onMounted(() => fetch_data(1, 20));
 </script>
+
 <template>
   <el-container direction="vertical">
     <!-- action bar -->
     <el-row>
-      <el-form :inline="true" :model="searchForm">
+      <el-form :inline="true">
         <el-form-item>
-          <el-input
-            type="text"
-            placeholder="输入开始搜索"
-            v-model="searchForm.search"
-            prefix-icon="Search"
-            clearable
-          />
+          <el-input type="text" placeholder="输入开始搜索" v-model="searchForm.search" prefix-icon="Search" clearable />
         </el-form-item>
 
         <el-form-item label="视图">
-          <el-segmented
-            v-model="searchForm.displayType"
-            :options="view_types"
-            size="default"
-          >
+          <el-segmented v-model="searchForm.displayType" :options="view_types" size="default">
             <template #default="{ item }">
               <el-icon>
                 <component :is="item.icon" />
