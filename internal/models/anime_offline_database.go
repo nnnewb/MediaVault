@@ -4,11 +4,12 @@ import (
 	"time"
 
 	"gorm.io/datatypes"
-	"gorm.io/gorm"
 )
 
 type AnimeOfflineDatabase struct {
-	gorm.Model
+	ID        uint                          `gorm:"primaryKey"`
+	CreatedAt time.Time                     `gorm:"created_at"`
+	UpdatedAt time.Time                     `gorm:"updated_at"`
 	Title     string                        `gorm:"title"`
 	Sources   datatypes.JSONSlice[string]   `gorm:"sources"`
 	Type      string                        `gorm:"type"`
