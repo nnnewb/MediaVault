@@ -28,9 +28,17 @@ func BootstrapDatabase(db *gorm.DB) error {
 		&models.Media{},
 		&models.MediaCover{},
 		&models.MediaRelation{},
+
+		// anime offline database imported data
+		&models.AnimeOfflineDatabase{},
+		&models.AnimeOfflineDatabaseSynonym{},
+		&models.AnimeOfflineDatabaseTag{},
+
+		// local anime data
 		&models.Anime{},
 		&models.AnimeTag{},
 		&models.AnimeEpisode{},
+
 		&models.Subtitle{},
 		&models.AnimeThumbnail{},
 		&models.Task{},

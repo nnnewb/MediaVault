@@ -1,18 +1,14 @@
 <script setup>
-import { inject, onMounted, reactive, ref } from "vue";
+import { inject, onMounted, ref, watch } from "vue";
 import { AnimeClient } from "@/api.js";
 
 const axios = inject("axios");
 const anime_client = new AnimeClient(axios);
 
-const view_types = [
-  { label: "网格", value: "grid", icon: "grid" },
-  { label: "列表", value: "list", icon: "list" },
-];
-const searchForm = reactive({
-  search: "",
-  displayType: "list",
-});
+const page = ref(1);
+const page_size = ref(20);
+const total = ref(0);
+const search = ref('');
 const data = ref([]);
 
 function fetch_data(page, page_size) {
@@ -24,6 +20,7 @@ function fetch_data(page, page_size) {
         return;
       }
 
+      total.value = resp.data.total;
       data.value = resp.data.data;
     })
     .catch((err) => {
@@ -31,47 +28,42 @@ function fetch_data(page, page_size) {
     });
 }
 
-onMounted(() => fetch_data(1, 20));
+onMounted(() => {
+  fetch_data(1, 20);
+  watch(page, () => fetch_data(page.value, page_size.value));
+  watch(page_size, () => fetch_data(page.value, page_size.value));
+});
 </script>
 
 <template>
   <el-container direction="vertical">
     <!-- action bar -->
-    <el-row>
-      <el-form :inline="true">
-        <el-form-item>
-          <el-input type="text" placeholder="输入开始搜索" v-model="searchForm.search" prefix-icon="Search" clearable />
-        </el-form-item>
-
-        <el-form-item label="视图">
-          <el-segmented v-model="searchForm.displayType" :options="view_types" size="default">
-            <template #default="{ item }">
-              <el-icon>
-                <component :is="item.icon" />
-              </el-icon>
-              {{ item.label }}
-            </template>
-          </el-segmented>
-        </el-form-item>
-
-        <!-- 添加资源 -->
-        <el-form-item>
+    <el-row :gutter="7">
+      <el-col :span="12">
+        <el-input type="text" placeholder="输入开始搜索" v-model="search" prefix-icon="Search" clearable />
+      </el-col>
+      <el-col :span="4">
           <el-button type="primary">
             <el-icon>
               <plus />
             </el-icon>
             添加
           </el-button>
-        </el-form-item>
-      </el-form>
+      </el-col>
     </el-row>
 
     <el-table :data="data">
       <el-table-column prop="title" label="标题"></el-table-column>
-      <el-table-column prop="release" label="发行日期"></el-table-column>
-      <el-table-column prop="episode" label="集数"></el-table-column>
+      <el-table-column prop="release_year" label="发行日期"></el-table-column>
+      <el-table-column prop="season" label="季度"></el-table-column>
+      <el-table-column prop="total_episodes" label="集数"></el-table-column>
       <el-table-column prop="status" label="状态"></el-table-column>
     </el-table>
+
+    <el-footer>
+      <el-pagination v-model:current-page="page" v-model:page-size="page_size" :total="total"
+                     layout="prev, pager, next, jumper"></el-pagination>
+    </el-footer>
   </el-container>
 </template>
 <style scoped></style>
