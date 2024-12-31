@@ -74,3 +74,13 @@ func (s *AnimeService) Search(term string, pagination Pagination, by OrderBy) ([
 	})
 	return ret, count, errors.Wrap(err, "transaction failed")
 }
+
+// Info 在离线动画数据库里按id获取动画数据
+func (s *AnimeService) Info(id uint) (*models.AnimeOfflineDatabase, error) {
+	var ret models.AnimeOfflineDatabase
+	err := s.db.Model(&models.AnimeOfflineDatabase{}).Where("id = ?", id).Preload("Synonyms").Preload("Tags").First(&ret).Error
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+	return &ret, nil
+}
