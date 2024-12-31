@@ -19,6 +19,12 @@ const router = createRouter({
       name: "anime",
       component: () => import("../views/AnimeSeries.vue"),
     },
+    {
+      path: "/anime/edit/:id",
+      name: "anime-edit",
+      component: () => import("../views/AnimeEdit.vue"),
+      props: true,
+    },
   ],
 });
 
