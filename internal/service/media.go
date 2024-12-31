@@ -32,17 +32,27 @@ func NewMediaService(db *gorm.DB, dataRoot string, infer *MediaInfer, ff *FFMPEG
 	}
 }
 
-func (s *MediaService) List(options ...QueryOption) ([]*models.Media, error) {
+func (s *MediaService) List(pagination Pagination, by OrderBy) ([]*models.Media, int64, error) {
 	var medias []*models.Media
+	var count int64
 	err := s.db.Transaction(func(tx *gorm.DB) error {
-		tx = tx.Model(&models.Media{})
-		for _, option := range options {
-			option(tx)
+		err := tx.
+			Model(&models.Media{}).
+			Scopes(pagination.WithDefault().Scope(), by.Scope()).
+			Preload("MediaCover").
+			Find(&medias).
+			Error
+		if err != nil {
+			return errors.WithStack(err)
 		}
 
-		return tx.Preload("MediaCover").Find(&medias).Error
+		err = tx.Model(&models.Media{}).Count(&count).Error
+		if err != nil {
+			return errors.WithStack(err)
+		}
+		return nil
 	})
-	return medias, errors.WithStack(err)
+	return medias, count, err
 }
 
 func (s *MediaService) Add(paths ...string) ([]*models.Media, error) {
