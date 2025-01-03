@@ -6,10 +6,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/nnnewb/media-vault/internal/logging"
 	"github.com/nnnewb/media-vault/internal/models"
 	"github.com/pkg/errors"
-	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
@@ -34,6 +32,44 @@ type anime struct {
 	Tags         []string `json:"tags"`
 }
 
+func flatAnimeOfflineDatabase(entries []anime) ([]models.AnimeOfflineDatabase, []models.AnimeOfflineDatabaseTag, []models.AnimeOfflineDatabaseSynonym) {
+	var (
+		records  = make([]models.AnimeOfflineDatabase, 0, len(entries))
+		tags     = make([]models.AnimeOfflineDatabaseTag, 0, len(entries)*8)
+		synonyms = make([]models.AnimeOfflineDatabaseSynonym, 0, len(entries)*8)
+	)
+	for i, a := range entries {
+		records = append(records, models.AnimeOfflineDatabase{
+			ID:        uint(i + 1),
+			Title:     a.Title,
+			Sources:   a.Sources,
+			Type:      a.Type,
+			Episodes:  a.Episodes,
+			Status:    a.Status,
+			Year:      a.AnimeSeason.Year,
+			Season:    a.AnimeSeason.Season,
+			Picture:   a.Picture,
+			Thumbnail: a.Thumbnail,
+			Duration:  time.Duration(a.Duration.Value) * time.Second,
+		})
+
+		for _, t := range a.Tags {
+			tags = append(tags, models.AnimeOfflineDatabaseTag{
+				AnimeID: uint(i + 1),
+				Tag:     t,
+			})
+		}
+
+		for _, s := range a.Synonyms {
+			synonyms = append(synonyms, models.AnimeOfflineDatabaseSynonym{
+				AnimeID: uint(i + 1),
+				Synonym: s,
+			})
+		}
+	}
+	return records, tags, synonyms
+}
+
 func BootstrapAnimeOfflineDatabase(db *gorm.DB, path string) error {
 	file, err := os.Open(path)
 	if err != nil {
@@ -51,54 +87,25 @@ func BootstrapAnimeOfflineDatabase(db *gorm.DB, path string) error {
 		return errors.WithStack(err)
 	}
 
-	// truncate tables
-	err = db.Exec(fmt.Sprintf("DELETE FROM %s", (&models.AnimeOfflineDatabase{}).TableName())).Error
-	if err != nil {
+	if err = db.Exec(fmt.Sprintf("DELETE FROM %s", (*models.AnimeOfflineDatabaseTag)(nil).TableName())).Error; err != nil {
+		return errors.WithStack(err)
+	}
+	if err = db.Exec(fmt.Sprintf("DELETE FROM %s", (*models.AnimeOfflineDatabaseSynonym)(nil).TableName())).Error; err != nil {
+		return errors.WithStack(err)
+	}
+	if err = db.Exec(fmt.Sprintf("DELETE FROM %s", (*models.AnimeOfflineDatabase)(nil).TableName())).Error; err != nil {
 		return errors.WithStack(err)
 	}
 
-	err = db.Exec(fmt.Sprintf("DELETE FROM %s", (&models.AnimeOfflineDatabaseSynonym{}).TableName())).Error
-	if err != nil {
+	records, tags, synonyms := flatAnimeOfflineDatabase(data.Data)
+	if err = db.CreateInBatches(records, 500).Error; err != nil {
 		return errors.WithStack(err)
 	}
-
-	err = db.Exec(fmt.Sprintf("DELETE FROM %s", (&models.AnimeOfflineDatabaseTag{}).TableName())).Error
-	if err != nil {
+	if err = db.CreateInBatches(tags, 500).Error; err != nil {
 		return errors.WithStack(err)
 	}
-
-	// import json data
-	for _, a := range data.Data {
-		synonyms := make([]models.AnimeOfflineDatabaseSynonym, 0, len(a.Synonyms))
-		for _, s := range a.Synonyms {
-			synonyms = append(synonyms, models.AnimeOfflineDatabaseSynonym{Synonym: s})
-		}
-
-		tags := make([]models.AnimeOfflineDatabaseTag, 0, len(a.Tags))
-		for _, t := range a.Tags {
-			tags = append(tags, models.AnimeOfflineDatabaseTag{Tag: t})
-		}
-
-		record := models.AnimeOfflineDatabase{
-			Title:     a.Title,
-			Sources:   a.Sources,
-			Type:      a.Type,
-			Episodes:  a.Episodes,
-			Status:    a.Status,
-			Year:      a.AnimeSeason.Year,
-			Season:    a.AnimeSeason.Season,
-			Picture:   a.Picture,
-			Thumbnail: a.Thumbnail,
-			Duration:  time.Duration(a.Duration.Value) * time.Second,
-			Synonyms:  synonyms,
-			Tags:      tags,
-		}
-
-		logging.GetLogger().Info("import anime", zap.String("title", record.Title))
-		err = db.Save(&record).Error
-		if err != nil {
-			return errors.WithStack(err)
-		}
+	if err = db.CreateInBatches(synonyms, 500).Error; err != nil {
+		return errors.WithStack(err)
 	}
 
 	return nil
