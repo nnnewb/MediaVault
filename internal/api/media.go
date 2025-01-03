@@ -39,6 +39,7 @@ func (controller *MediaControllerV1) MediaListV1(c *gin.Context) {
 	var req struct {
 		Pagination
 		OrderBy
+		Q string `json:"q" form:"q"`
 	}
 	if err := c.BindJSON(&req); err != nil {
 		logging.GetLogger().Error("failed to bind json", zap.Error(err))
@@ -48,7 +49,7 @@ func (controller *MediaControllerV1) MediaListV1(c *gin.Context) {
 
 	pagination := service.Pagination{Page: req.Page, PageSize: req.PageSize}
 	by := service.OrderBy{Column: req.Column, Descending: req.Descending}
-	medias, count, err := controller.s.List(pagination, by)
+	medias, count, err := controller.s.List(req.Q, pagination, by)
 	if err != nil {
 		logging.GetLogger().Error("failed to list media", zap.Error(err))
 		c.AbortWithStatusJSON(http.StatusInternalServerError, ServerError(err))

@@ -34,8 +34,7 @@ function confirm_scan(path) {
 }
 
 function load_medias(page, page_size) {
-  const payload = { page, page_size };
-  mediaClient.list(page, page_size).then(resp => {
+  mediaClient.list(null, page, page_size).then(resp => {
     if (resp.code !== 0) {
       console.error(resp.message);
       return;

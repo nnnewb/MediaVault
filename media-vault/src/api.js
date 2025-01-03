@@ -41,12 +41,13 @@ export class MediaClient {
 
   /**
    * 列出媒体
+   * @param {string|null} q
    * @param {number} page
    * @param {number} page_size
    * @returns {Promise<ListResponse<Media>>}
    */
-  async list(page, page_size) {
-    const payload = { page, page_size };
+  async list(q, page, page_size) {
+    const payload = { q, page, page_size };
     return (await this.axios.post("/api/v1/media/list", payload)).data;
   }
 

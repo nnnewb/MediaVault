@@ -1,6 +1,8 @@
 <script setup>
 import { AnimeClient } from "@/api.js";
 import { Picture as IconPicture } from "@element-plus/icons-vue";
+import ChooseMedia from "@/components/ChooseMedia.vue";
+import { createVNode, render } from "vue";
 
 defineProps({
   id: { required: true },
@@ -11,6 +13,7 @@ const anime_info = ref({});
 const select_loading = ref(false);
 const select_options = ref([]);
 const select_value = ref(0);
+const choose_media_dialog_visible = ref(false);
 
 function fetch_suggestions(query) {
   if (query) {
@@ -45,16 +48,25 @@ function on_select_change(value) {
     });
   }
 }
+
+function choose_episode_media() {
+  choose_media_dialog_visible.value = true;
+}
 </script>
 
 <template>
   <el-container direction="vertical">
-    <el-row>
-      <el-col>
-        <el-select remote :remote-method="fetch_suggestions" :loading="select_loading" filterable v-model="select_value"
-                   @change="on_select_change" placeholder="从动画数据库搜索...">
-          <el-option v-for="item in select_options" :label="item.label" :value="item.value"></el-option>
-        </el-select>
+    <el-row :gutter="7">
+      <el-col :span="22">
+        <el-form-item label="搜索">
+          <el-select remote :remote-method="fetch_suggestions" :loading="select_loading" filterable
+                     v-model="select_value" @change="on_select_change">
+            <el-option v-for="item in select_options" :label="item.label" :value="item.value"></el-option>
+          </el-select>
+        </el-form-item>
+      </el-col>
+      <el-col :span="2">
+        <el-button type="primary">保存</el-button>
       </el-col>
     </el-row>
 
@@ -97,50 +109,28 @@ function on_select_change(value) {
       </el-col>
     </el-row>
 
-    <el-row :gutter="7">
-      <el-col :span="12">
-        <el-card shadow="never">
-          <template #header>
-            <el-row>
-              <el-text size="large">剧集</el-text>
-              <el-button type="primary" class="push">
-                <el-icon>
-                  <Plus />
-                </el-icon>
-                添加
-              </el-button>
-            </el-row>
-          </template>
-          <el-table height="500">
-            <el-table-column label="文件名" />
-            <el-table-column label="修改时间" />
-            <el-table-column label="操作"></el-table-column>
-          </el-table>
-        </el-card>
-      </el-col>
+    <el-row>
+      <el-card shadow="never" class="episodes-card">
+        <template #header>
+          <el-row>
+            <el-text size="large">剧集</el-text>
+            <el-button type="primary" class="push" @click="choose_episode_media">
+              <el-icon>
+                <Plus />
+              </el-icon>
+              添加
+            </el-button>
+          </el-row>
+        </template>
+        <el-table height="500">
+          <el-table-column label="文件名" />
+          <el-table-column label="修改时间" />
+          <el-table-column label="操作"></el-table-column>
+        </el-table>
+      </el-card>
 
-      <el-col :span="12">
-        <el-card shadow="never">
-          <template #header>
-            <el-row>
-              <el-text size="large">OVA</el-text>
-              <el-button type="primary" class="push">
-                <el-icon>
-                  <Plus />
-                </el-icon>
-                添加
-              </el-button>
-            </el-row>
-          </template>
-          <el-table height="500">
-            <el-table-column label="文件名" />
-            <el-table-column label="修改时间" />
-            <el-table-column label="操作"></el-table-column>
-          </el-table>
-        </el-card>
-      </el-col>
+      <choose-media v-model="choose_media_dialog_visible"></choose-media>
     </el-row>
-    <el-footer></el-footer>
   </el-container>
 </template>
 
@@ -163,6 +153,10 @@ function on_select_change(value) {
   background: var(--el-fill-color-light);
   color: var(--el-text-color-secondary);
   font-size: 30px;
+}
+
+.episodes-card {
+  width: 100%;
 }
 
 .bold {
