@@ -118,3 +118,10 @@ func (s *MediaService) runExtractCoverTask(src, dest string, media *models.Media
 		logging.GetLogger().Error("save task failed", zap.Error(err))
 	}
 }
+
+// GetCover 获取封面信息
+func (s *MediaService) GetCover(id uint) (*models.MediaCover, error) {
+	cover := &models.MediaCover{}
+	err := s.db.Model(&models.MediaCover{}).Where("id=?", id).Take(cover).Error
+	return cover, errors.WithStack(err)
+}

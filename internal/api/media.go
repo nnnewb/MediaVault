@@ -4,7 +4,9 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
 	"go.uber.org/zap"
+	"gorm.io/gorm"
 
 	"gitee.com/uniqptr/media-vault.git/internal/logging"
 	"gitee.com/uniqptr/media-vault.git/internal/models"
@@ -27,6 +29,7 @@ func (controller *MediaControllerV1) RegisterRoutes(router gin.IRouter) {
 	g.POST("/media/detail", controller.MediaDetailV1)
 	g.POST("/media/add", controller.MediaAddV1)
 	g.POST("/media/update", controller.MediaUpdateV1)
+	g.GET("/media/cover/:id", controller.MediaCoverDownloadV1)
 }
 
 // MediaListV1 列出媒体
@@ -89,4 +92,30 @@ func (controller *MediaControllerV1) MediaUpdateV1(c *gin.Context) {
 
 func (controller *MediaControllerV1) MediaDeleteV1(c *gin.Context) {
 	logging.GetLogger().Panic("not implemented")
+}
+
+func (controller *MediaControllerV1) MediaCoverDownloadV1(c *gin.Context) {
+	var req struct {
+		ID uint `uri:"id" binding:"required"`
+	}
+	if err := c.BindUri(&req); err != nil {
+		logging.GetLogger().Error("failed to bind uri", zap.Error(err))
+		c.AbortWithStatusJSON(http.StatusBadRequest, BadRequest(err))
+		return
+	}
+
+	cover, err := controller.s.GetCover(req.ID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.AbortWithStatus(400)
+			return
+		}
+
+		logging.GetLogger().Error("failed to get cover", zap.Error(err))
+		c.AbortWithStatusJSON(http.StatusInternalServerError, ServerError(err))
+		return
+	}
+
+	c.Header("Content-Type", "image/jpeg")
+	c.File(cover.Path)
 }
