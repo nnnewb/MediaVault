@@ -5,8 +5,8 @@ import (
 	"io/fs"
 	"net/http"
 
-	"gitee.com/uniqptr/media-vault.git/internal/logging"
-	"gitee.com/uniqptr/media-vault.git/internal/service"
+	"github.com/nnnewb/media-vault/internal/logging"
+	"github.com/nnnewb/media-vault/internal/service"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"

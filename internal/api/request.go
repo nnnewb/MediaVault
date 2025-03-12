@@ -1,6 +1,6 @@
 package api
 
-import "gitee.com/uniqptr/media-vault.git/internal/service"
+import "github.com/nnnewb/media-vault/internal/service"
 
 const (
 	DefaultPage            = 1

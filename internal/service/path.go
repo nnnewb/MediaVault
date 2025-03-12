@@ -8,8 +8,8 @@ import (
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 
-	"gitee.com/uniqptr/media-vault.git/internal/logging"
-	"gitee.com/uniqptr/media-vault.git/internal/models"
+	"github.com/nnnewb/media-vault/internal/logging"
+	"github.com/nnnewb/media-vault/internal/models"
 )
 
 type PathService struct {

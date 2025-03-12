@@ -4,8 +4,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"gitee.com/uniqptr/media-vault.git/internal/constants"
-	"gitee.com/uniqptr/media-vault.git/internal/models"
+	"github.com/nnnewb/media-vault/internal/constants"
+	"github.com/nnnewb/media-vault/internal/models"
 
 	"github.com/pkg/errors"
 	"gorm.io/gorm"

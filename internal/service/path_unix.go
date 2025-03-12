@@ -3,7 +3,7 @@
 package service
 
 import (
-	"gitee.com/uniqptr/media-vault.git/internal/models"
+	"github.com/nnnewb/media-vault/internal/models"
 )
 
 func (s *PathService) ListDrives() ([]models.PathEntry, error) {

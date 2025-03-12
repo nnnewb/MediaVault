@@ -16,10 +16,10 @@ import (
 	"go.uber.org/zap/zapcore"
 	"gorm.io/gorm"
 
-	"gitee.com/uniqptr/media-vault.git/internal/api"
-	"gitee.com/uniqptr/media-vault.git/internal/bootstrap"
-	"gitee.com/uniqptr/media-vault.git/internal/logging"
-	"gitee.com/uniqptr/media-vault.git/internal/service"
+	"github.com/nnnewb/media-vault/internal/api"
+	"github.com/nnnewb/media-vault/internal/bootstrap"
+	"github.com/nnnewb/media-vault/internal/logging"
+	"github.com/nnnewb/media-vault/internal/service"
 )
 
 var serveOptions struct {
@@ -74,9 +74,10 @@ var serveCmd = &cobra.Command{
 		}
 
 		// setup service
+		taskService := service.NewTaskService(db)
 		inferService := service.NewMediaInfer()
 		ffmpegService := service.NewFFMPEGService(db, serveOptions.FFMPEGPath)
-		mediaService := service.NewMediaService(db, serveOptions.DataRoot, inferService, ffmpegService)
+		mediaService := service.NewMediaService(db, serveOptions.DataRoot, inferService, ffmpegService, taskService)
 		pathService := service.NewPathService()
 
 		// setup controller
