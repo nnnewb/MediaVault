@@ -2,8 +2,9 @@ package bootstrap
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
-	"strings"
+	"time"
 
 	"github.com/nnnewb/media-vault/internal/logging"
 	"github.com/nnnewb/media-vault/internal/models"
@@ -21,7 +22,7 @@ type anime struct {
 	AnimeSeason struct {
 		Year   int32  `json:"year"`
 		Season string `json:"season"`
-	} `json:"anime_season"`
+	} `json:"animeSeason"`
 	Picture   string `json:"picture"`
 	Thumbnail string `json:"thumbnail"`
 	Duration  struct {
@@ -29,7 +30,7 @@ type anime struct {
 		Unit  string `json:"unit"`
 	} `json:"duration"`
 	Synonyms     []string `json:"synonyms"`
-	RelatedAnime []string `json:"related_anime"`
+	RelatedAnime []string `json:"relatedAnime"`
 	Tags         []string `json:"tags"`
 }
 
@@ -50,44 +51,47 @@ func BootstrapAnimeOfflineDatabase(db *gorm.DB, path string) error {
 		return errors.WithStack(err)
 	}
 
+	// truncate tables
+	err = db.Exec(fmt.Sprintf("DELETE FROM %s", (&models.AnimeOfflineDatabase{}).TableName())).Error
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	err = db.Exec(fmt.Sprintf("DELETE FROM %s", (&models.AnimeOfflineDatabaseSynonym{}).TableName())).Error
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	err = db.Exec(fmt.Sprintf("DELETE FROM %s", (&models.AnimeOfflineDatabaseTag{}).TableName())).Error
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	// import json data
 	for _, a := range data.Data {
-		var season models.AnimeSeason
-		switch strings.ToUpper(a.AnimeSeason.Season) {
-		case "SPRING":
-			season = models.AnimeSeasonSpring
-		case "SUMMER":
-			season = models.AnimeSeasonSummer
-		case "FALL":
-			season = models.AnimeSeasonFall
-		case "WINTER":
-			season = models.AnimeSeasonWinter
-		default:
-			season = models.AnimeSeasonUndefined
+		synonyms := make([]models.AnimeOfflineDatabaseSynonym, 0, len(a.Synonyms))
+		for _, s := range a.Synonyms {
+			synonyms = append(synonyms, models.AnimeOfflineDatabaseSynonym{Synonym: s})
 		}
 
-		var status models.AnimeStatus
-		switch strings.ToUpper(a.Status) {
-		case "FINISHED":
-			status = models.AnimeStatusFinished
-		case "ONGOING":
-			status = models.AnimeStatusOngoing
-		case "UPCOMING":
-			status = models.AnimeStatusUpcoming
-		default:
-			status = models.AnimeStatusUnknown
-		}
-
-		record := models.Anime{
-			Title:         a.Title,
-			Synonyms:      a.Synonyms,
-			TotalEpisodes: a.Episodes,
-			ReleaseYear:   a.AnimeSeason.Year,
-			Season:        season,
-			Status:        status,
-			Tags:          []models.AnimeTag{},
-		}
+		tags := make([]models.AnimeOfflineDatabaseTag, 0, len(a.Tags))
 		for _, t := range a.Tags {
-			record.Tags = append(record.Tags, models.AnimeTag{Tag: t})
+			tags = append(tags, models.AnimeOfflineDatabaseTag{Tag: t})
+		}
+
+		record := models.AnimeOfflineDatabase{
+			Title:     a.Title,
+			Sources:   a.Sources,
+			Type:      a.Type,
+			Episodes:  a.Episodes,
+			Status:    a.Status,
+			Year:      a.AnimeSeason.Year,
+			Season:    a.AnimeSeason.Season,
+			Picture:   a.Picture,
+			Thumbnail: a.Thumbnail,
+			Duration:  time.Duration(a.Duration.Value) * time.Second,
+			Synonyms:  synonyms,
+			Tags:      tags,
 		}
 
 		logging.GetLogger().Info("import anime", zap.String("title", record.Title))
