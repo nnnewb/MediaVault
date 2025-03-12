@@ -10,7 +10,6 @@ const routes = [
 ];
 
 watch(useRoute(), (route) => {
-  console.log(route.path);
   default_active.value = route.path;
 });
 
