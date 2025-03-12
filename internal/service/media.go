@@ -8,9 +8,9 @@ import (
 	"github.com/nnnewb/media-vault/internal/constants"
 	"github.com/nnnewb/media-vault/internal/logging"
 	"github.com/nnnewb/media-vault/internal/models"
-	"go.uber.org/zap"
 
 	"github.com/pkg/errors"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 

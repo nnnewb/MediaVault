@@ -40,6 +40,7 @@ var serveCmd = &cobra.Command{
 			logging.WithZapOutputPath("media-vault.log"),
 			logging.WithZapEncoderConfigEncodeLevel(zapcore.CapitalColorLevelEncoder),
 			logging.WithZapLevel(zapcore.DebugLevel),
+			logging.WithZapDevelopment(true),
 		)
 		if err != nil {
 			log.Panicf("setup logging facility failed, error %+v", err)
@@ -88,19 +89,27 @@ var serveCmd = &cobra.Command{
 		inferService := service.NewMediaInfer()
 		ffmpegService := service.NewFFMPEGService(db, serveOptions.FFMPEGPath)
 		mediaService := service.NewMediaService(db, serveOptions.DataRoot, inferService, ffmpegService, taskService)
+		animeService := service.NewAnimeService(db)
 		pathService := service.NewPathService()
 
 		// setup controller
 		mediaControllerV1 := api.NewMediaControllerV1(mediaService)
 		pathControllerV1 := api.NewPathControllerV1(pathService)
 		taskController := api.NewTaskControllerV1(taskService)
+		animeController := api.NewAnimeControllerV1(animeService)
+
+		// create gin app
+		app := gin.New()
+
+		// setup middlewares
+		app.Use(api.AccessLog(logging.GetLogger()))
 
 		// setup routes
-		app := gin.New()
 		router := app.Group("/api")
 		mediaControllerV1.RegisterRoutes(router)
 		pathControllerV1.RegisterRoutes(router)
 		taskController.RegisterRoutes(router)
+		animeController.RegisterRoutes(router)
 
 		// start serving
 		logging.GetLogger().Info("start serving", zap.String("listen", serveOptions.ListenAddr))
@@ -123,7 +132,7 @@ func init() {
 	// is called directly, e.g.:
 	// serveCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	serveCmd.Flags().StringVar(&serveOptions.DatabaseDSN, "database", "media-vault.db", "数据库文件路径")
-	serveCmd.Flags().StringVarP(&serveOptions.ListenAddr, "listen", "l", ":39876", "监听地址")
+	serveCmd.Flags().StringVarP(&serveOptions.ListenAddr, "listen", "l", "127.0.0.1:39876", "监听地址")
 	serveCmd.Flags().StringVar(&serveOptions.FFMPEGPath, "ffmpeg", "ffmpeg", "ffmpeg 命令路径")
 	serveCmd.Flags().StringVar(&serveOptions.DataRoot, "data-root", "./data", "数据根目录，保存封面、预览等数据")
 	serveCmd.Flags().StringVar(&serveOptions.AnimeOfflineDatabase, "anime-offline-database", "", "导入动漫离线数据库 manami-project/anime-offline-database")
