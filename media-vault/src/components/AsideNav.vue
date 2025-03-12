@@ -4,7 +4,7 @@
 <template>
     <el-menu :router="true" default-active="1" class="aside-menu">
         <el-menu-item route="/" index="1">
-            <el-icon><House /></el-icon>
+            <el-icon><VideoCamera /></el-icon>
             媒体库
         </el-menu-item>
         <el-menu-item route="/task" index="2">

@@ -16,7 +16,7 @@ function build_cover_url(id) {
 <template>
     <el-container>
         <el-row class="grid">
-            <el-card v-for="item in props.data" class="card">
+            <el-card v-for="item in props.data" class="card" shadow="hover">
                 <template #header>
                     {{ item.name }}
                 </template>
