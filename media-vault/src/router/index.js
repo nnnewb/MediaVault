@@ -13,6 +13,11 @@ const router = createRouter({
       path: '/task',
       name: 'task',
       component: () => import('../views/TaskView.vue'),
+    },
+    {
+      path: '/anime',
+      name: 'anime',
+      component: () => import('../views/AnimeSeries.vue'),
     }
   ],
 })
