@@ -83,12 +83,14 @@ var serveCmd = &cobra.Command{
 		// setup controller
 		mediaControllerV1 := api.NewMediaControllerV1(mediaService)
 		pathControllerV1 := api.NewPathControllerV1(pathService)
+		taskController := api.NewTaskControllerV1(taskService)
 
 		// setup routes
 		app := gin.New()
 		router := app.Group("/api")
 		mediaControllerV1.RegisterRoutes(router)
 		pathControllerV1.RegisterRoutes(router)
+		taskController.RegisterRoutes(router)
 
 		// start serving
 		logging.GetLogger().Info("start serving", zap.String("listen", serveOptions.ListenAddr))
