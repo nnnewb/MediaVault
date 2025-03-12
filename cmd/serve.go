@@ -5,8 +5,10 @@ This file is apart of the project media-vault. All rights reserved.
 package cmd
 
 import (
-	"fmt"
+	"log"
+	"net/http"
 
+	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
 )
 
@@ -15,7 +17,10 @@ var serveCmd = &cobra.Command{
 	Use:   "serve",
 	Short: "启动服务",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("serve called")
+		app := gin.New()
+		if err := http.ListenAndServe(":8080", app); err != nil {
+			log.Println(err)
+		}
 	},
 }
 
