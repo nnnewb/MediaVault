@@ -34,7 +34,8 @@ axios.post('/api/v1/media/list', { 'page': page.value, 'page_size': page_size.va
       <el-table-column prop="id" label="id" width="100" />
       <el-table-column label="封面" width="300">
         <template #default="scope">
-          <el-image :src="'/api/v1/media/cover?id='+scope.row.cover_id"></el-image>
+          <el-image :src="'/api/v1/media/cover/' + scope.row.cover_id" v-if="scope.row.cover_id" />
+          <el-text v-else>没有封面</el-text>
         </template>
       </el-table-column>
       <el-table-column prop="created_at" label="创建时间" width="300" />
