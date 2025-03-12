@@ -1,10 +1,10 @@
 <script setup>
-import AsideNav from '@/components/AsideNav.vue';
-import HeadNav from '@/components/HeadNav.vue';
-import zhCn from 'element-plus/es/locale/lang/zh-cn';
-import { RouterView } from 'vue-router';
+import AsideNav from "@/components/AsideNav.vue";
+import HeadNav from "@/components/HeadNav.vue";
+import zhCn from "element-plus/es/locale/lang/zh-cn";
+import { RouterView } from "vue-router";
 
-const size = 'default';
+const size = "default";
 const zIndex = 3000;
 </script>
 
