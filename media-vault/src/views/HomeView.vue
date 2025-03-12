@@ -1,17 +1,21 @@
 <script setup>
 const medias = [
-  {
-    path: '01.mkv',
-  },
-  {
-    path: '02.mkv'
-  }
 ];
+for (let i = 0; i < 20; i++) {
+  medias.push({ path: `${i}.mkv`, cover: null })
+}
 </script>
 
 <template>
   <el-container>
-    <video-item v-for="media in medias" :media="media">
-    </video-item>
+    <el-row class="row">
+      <video-item v-for="media in medias" :media="media" />
+    </el-row>
   </el-container>
 </template>
+
+<style scoped>
+.row {
+  gap: 7px;
+}
+</style>
