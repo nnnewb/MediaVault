@@ -7,7 +7,7 @@ package cmd
 import (
 	"log"
 	"net/http"
-	"os"
+	"path/filepath"
 
 	"github.com/gin-gonic/gin"
 	"github.com/glebarez/sqlite"
@@ -24,7 +24,6 @@ import (
 
 var serveOptions struct {
 	ListenAddr           string
-	DatabaseDSN          string
 	FFMPEGPath           string
 	DataRoot             string
 	AnimeOfflineDatabase string
@@ -48,40 +47,33 @@ var serveCmd = &cobra.Command{
 		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		// open database
-		db, err := gorm.Open(sqlite.Open(serveOptions.DatabaseDSN), &gorm.Config{})
+		// bootstrap
+		err := bootstrap.BootstrapDataFolder(serveOptions.DataRoot)
 		if err != nil {
-			logging.GetLogger().Panic("open database failed", zap.String("dsn", serveOptions.DatabaseDSN), zap.Error(err))
+			logging.GetLogger().Panic("bootstrap data folder failed", zap.Error(err))
 			return
 		}
 
-		// bootstrap
+		dsn := filepath.Join(serveOptions.DataRoot, "media-vault.sqlite")
+		db, err := gorm.Open(sqlite.Open(dsn), &gorm.Config{})
+		if err != nil {
+			logging.GetLogger().Panic("open database failed", zap.String("dsn", dsn), zap.Error(err))
+			return
+		}
+
 		err = bootstrap.BootstrapDatabase(db)
 		if err != nil {
 			logging.GetLogger().Panic("bootstrap database failed", zap.Error(err))
 			return
 		}
 
-		err = bootstrap.BootstrapDataFolder(serveOptions.DataRoot)
-		if err != nil {
-			logging.GetLogger().Panic("bootstrap data folder failed", zap.Error(err))
-			return
-		}
-
 		if serveOptions.AnimeOfflineDatabase != "" {
-			logging.GetLogger().Info("import anime offline database ...", zap.String("path", serveOptions.AnimeOfflineDatabase))
+			logging.GetLogger().Info("indexing anime offline database ...", zap.String("path", serveOptions.AnimeOfflineDatabase))
 			err = bootstrap.BootstrapAnimeOfflineDatabase(db, serveOptions.AnimeOfflineDatabase)
 			if err != nil {
 				logging.GetLogger().Panic("bootstrap anime offline database failed", zap.Error(err))
 				return
 			}
-		}
-
-		// setup data folder
-		err = os.MkdirAll(serveOptions.DataRoot, 0o755)
-		if err != nil {
-			logging.GetLogger().Panic("setup data folder failed", zap.Error(err))
-			return
 		}
 
 		// setup service
@@ -131,7 +123,6 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// serveCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	serveCmd.Flags().StringVar(&serveOptions.DatabaseDSN, "database", "media-vault.db", "数据库文件路径")
 	serveCmd.Flags().StringVarP(&serveOptions.ListenAddr, "listen", "l", "127.0.0.1:39876", "监听地址")
 	serveCmd.Flags().StringVar(&serveOptions.FFMPEGPath, "ffmpeg", "ffmpeg", "ffmpeg 命令路径")
 	serveCmd.Flags().StringVar(&serveOptions.DataRoot, "data-root", "./data", "数据根目录，保存封面、预览等数据")
