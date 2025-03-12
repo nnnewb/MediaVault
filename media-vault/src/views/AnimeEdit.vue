@@ -60,8 +60,8 @@ function on_select_change(value) {
 
     <el-row>
       <el-col :span="24">
-        <el-descriptions border direction="vertical">
-          <el-descriptions-item label="封面" width="240" :rowspan="6">
+        <el-descriptions border direction="horizontal" :column="3" label-width="60">
+          <el-descriptions-item label="封面" :rowspan="5">
             <el-image :src="anime_info.picture" fit="cover">
               <template #error>
                 <el-icon :size="40" class="image-slot">
@@ -70,7 +70,7 @@ function on_select_change(value) {
               </template>
             </el-image>
           </el-descriptions-item>
-          <el-descriptions-item label="标题" width="300">
+          <el-descriptions-item label="标题" :span="2">
             <el-text size="large" type="primary" class="bold">
               {{ anime_info.title }}
             </el-text>
@@ -78,16 +78,20 @@ function on_select_change(value) {
           <el-descriptions-item label="年份">{{ anime_info.year }}</el-descriptions-item>
           <el-descriptions-item label="季度">{{ anime_info.season }}</el-descriptions-item>
           <el-descriptions-item label="集数">{{ anime_info.episodes }}</el-descriptions-item>
-          <el-descriptions-item label="播出状态">
+          <el-descriptions-item label="播出状态" label-width="120">
             <el-tag type="success">
               {{ anime_info.status }}
             </el-tag>
           </el-descriptions-item>
           <el-descriptions-item label="别名" :span="2">
-            <el-tag type="primary" v-for="synonym in anime_info.synonyms">{{ synonym }}</el-tag>
+            <el-space wrap>
+              <el-tag type="primary" v-for="synonym in anime_info.synonyms">{{ synonym }}</el-tag>
+            </el-space>
           </el-descriptions-item>
-          <el-descriptions-item label="标签">
-            <el-tag v-for="t in anime_info.tags">{{ t }}</el-tag>
+          <el-descriptions-item label="标签" :span="2">
+            <el-space wrap>
+              <el-tag v-for="t in anime_info.tags">{{ t }}</el-tag>
+            </el-space>
           </el-descriptions-item>
         </el-descriptions>
       </el-col>
@@ -97,18 +101,42 @@ function on_select_change(value) {
       <el-col :span="12">
         <el-card shadow="never">
           <template #header>
-            <h4>选择剧集</h4>
+            <el-row>
+              <el-text size="large">剧集</el-text>
+              <el-button type="primary" class="push">
+                <el-icon>
+                  <Plus />
+                </el-icon>
+                添加
+              </el-button>
+            </el-row>
           </template>
-          <el-transfer></el-transfer>
+          <el-table height="500">
+            <el-table-column label="文件名" />
+            <el-table-column label="修改时间" />
+            <el-table-column label="操作"></el-table-column>
+          </el-table>
         </el-card>
       </el-col>
 
       <el-col :span="12">
         <el-card shadow="never">
           <template #header>
-            <h4>选择SP</h4>
+            <el-row>
+              <el-text size="large">OVA</el-text>
+              <el-button type="primary" class="push">
+                <el-icon>
+                  <Plus />
+                </el-icon>
+                添加
+              </el-button>
+            </el-row>
           </template>
-          <el-transfer></el-transfer>
+          <el-table height="500">
+            <el-table-column label="文件名" />
+            <el-table-column label="修改时间" />
+            <el-table-column label="操作"></el-table-column>
+          </el-table>
         </el-card>
       </el-col>
     </el-row>
@@ -139,5 +167,9 @@ function on_select_change(value) {
 
 .bold {
   font-weight: bold;
+}
+
+.push {
+  margin-left: auto;
 }
 </style>
