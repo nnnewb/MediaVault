@@ -8,7 +8,6 @@ import (
 	"github.com/nnnewb/media-vault/internal/constants"
 	"github.com/nnnewb/media-vault/internal/logging"
 	"github.com/nnnewb/media-vault/internal/models"
-
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -32,13 +31,21 @@ func NewMediaService(db *gorm.DB, dataRoot string, infer *MediaInfer, ff *FFMPEG
 	}
 }
 
-func (s *MediaService) List(pagination Pagination, by OrderBy) ([]*models.Media, int64, error) {
+func (s *MediaService) List(q string, pagination Pagination, by OrderBy) ([]*models.Media, int64, error) {
 	var medias []*models.Media
 	var count int64
+
+	qScope := func(db *gorm.DB) *gorm.DB {
+		if q != "" {
+			return db.Where("path like ?", "%"+q+"%")
+		}
+		return db
+	}
+
 	err := s.db.Transaction(func(tx *gorm.DB) error {
 		err := tx.
 			Model(&models.Media{}).
-			Scopes(pagination.WithDefault().Scope(), by.Scope()).
+			Scopes(pagination.WithDefault().Scope(), by.Scope(), qScope).
 			Preload("MediaCover").
 			Find(&medias).
 			Error
@@ -46,7 +53,7 @@ func (s *MediaService) List(pagination Pagination, by OrderBy) ([]*models.Media,
 			return errors.WithStack(err)
 		}
 
-		err = tx.Model(&models.Media{}).Count(&count).Error
+		err = tx.Model(&models.Media{}).Scopes(qScope).Count(&count).Error
 		if err != nil {
 			return errors.WithStack(err)
 		}
