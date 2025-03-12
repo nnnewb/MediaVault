@@ -8,11 +8,15 @@ import (
 )
 
 type MediaService struct {
-	db *gorm.DB
+	db    *gorm.DB
+	infer *MediaInfer
 }
 
-func NewMediaService(db *gorm.DB) *MediaService {
-	return &MediaService{db: db}
+func NewMediaService(db *gorm.DB, infer *MediaInfer) *MediaService {
+	return &MediaService{
+		db: db,
+		infer: infer,
+	}
 }
 
 func (s *MediaService) List(options ...QueryOption) ([]*models.Media, error) {
@@ -23,6 +27,20 @@ func (s *MediaService) List(options ...QueryOption) ([]*models.Media, error) {
 		}
 
 		return tx.Find(&medias).Error
+	})
+	return medias, errors.WithStack(err)
+}
+
+func (s *MediaService) Add(paths ...string) ([]*models.Media, error) {
+	var medias []*models.Media
+	for _, path := range paths {
+		medias = append(medias, &models.Media{
+			Path: path,
+			MediaType: s.infer.InferMediaType(path),
+		})
+	}
+	err := s.db.Transaction(func(tx *gorm.DB) error {
+		return tx.CreateInBatches(medias, 100).Error
 	})
 	return medias, errors.WithStack(err)
 }
