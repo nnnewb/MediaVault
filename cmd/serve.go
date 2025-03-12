@@ -15,9 +15,10 @@ import (
 	"go.uber.org/zap/zapcore"
 	"gorm.io/gorm"
 
+	"gitee.com/uniqptr/media-vault.git/internal/api"
 	"gitee.com/uniqptr/media-vault.git/internal/bootstrap"
 	"gitee.com/uniqptr/media-vault.git/internal/logging"
-	"gitee.com/uniqptr/media-vault.git/internal/routes"
+	"gitee.com/uniqptr/media-vault.git/internal/service"
 )
 
 var serveOptions struct {
@@ -31,6 +32,7 @@ var serveCmd = &cobra.Command{
 	Short: "启动服务",
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := logging.Setup(
+			logging.WithZapEncoding("console"),
 			logging.WithZapOutputPath("media-vault.log"),
 			logging.WithZapEncoderConfigEncodeLevel(zapcore.CapitalColorLevelEncoder),
 			logging.WithZapLevel(zapcore.DebugLevel),
@@ -55,9 +57,19 @@ var serveCmd = &cobra.Command{
 			return
 		}
 
-		// start serving
+		// setup service
+		mediaService := service.NewMediaService(db)
+
+		// setup controller
+		mediaControllerV1 := api.NewMediaControllerV1(mediaService)
+
+		// setup routes
 		app := gin.New()
-		routes.RegisterAppRoutes(app)
+		router := app.Group("/api")
+		mediaControllerV1.RegisterRoutes(router)
+
+		// start serving
+		logging.GetLogger().Info("start serving", zap.String("listen", serveOptions.ListenAddr))
 		if err := http.ListenAndServe(serveOptions.ListenAddr, app); err != nil {
 			logging.GetLogger().Error("listen and serve failed", zap.Error(err))
 		}

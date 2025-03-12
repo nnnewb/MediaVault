@@ -17,9 +17,9 @@ const (
 
 type Media struct {
 	gorm.Model
-	Path          string    `gorm:"path"`
-	MediaType     MediaType `gorm:"title"`          // 媒体类型
-	InformationID int64     `gorm:"information_id"` // 信息外键 ID
+	Path          string    `gorm:"path;type:varchar(255);"` // 文件路径
+	MediaType     MediaType `gorm:"title;type:integer;"`                   // 媒体类型
+	InformationID int64     `gorm:"information_id"`          // 信息外键 ID
 }
 
 func (*Media) TableName() string { return "media" }
@@ -34,5 +34,5 @@ const (
 type MediaRelation struct {
 	MediaID   int64             `gorm:"media_id"`   // 番剧 ID
 	RelatedID int64             `gorm:"related_id"` // 关联番剧 ID
-	Relation  MediaRelationType `gorm:"relation"`   // 关系
+	Relation  MediaRelationType `gorm:"relation;type:integer;"`   // 关系
 }
