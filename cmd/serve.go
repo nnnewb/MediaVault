@@ -23,10 +23,11 @@ import (
 )
 
 var serveOptions struct {
-	ListenAddr  string
-	DatabaseDSN string
-	FFMPEGPath  string
-	DataRoot    string
+	ListenAddr           string
+	DatabaseDSN          string
+	FFMPEGPath           string
+	DataRoot             string
+	AnimeOfflineDatabase string
 }
 
 // serveCmd represents the serve command
@@ -64,6 +65,15 @@ var serveCmd = &cobra.Command{
 		if err != nil {
 			logging.GetLogger().Panic("bootstrap data folder failed", zap.Error(err))
 			return
+		}
+
+		if serveOptions.AnimeOfflineDatabase != "" {
+			logging.GetLogger().Info("import anime offline database ...", zap.String("path", serveOptions.AnimeOfflineDatabase))
+			err = bootstrap.BootstrapAnimeOfflineDatabase(db, serveOptions.AnimeOfflineDatabase)
+			if err != nil {
+				logging.GetLogger().Panic("bootstrap anime offline database failed", zap.Error(err))
+				return
+			}
 		}
 
 		// setup data folder
@@ -116,4 +126,5 @@ func init() {
 	serveCmd.Flags().StringVarP(&serveOptions.ListenAddr, "listen", "l", ":39876", "监听地址")
 	serveCmd.Flags().StringVar(&serveOptions.FFMPEGPath, "ffmpeg", "ffmpeg", "ffmpeg 命令路径")
 	serveCmd.Flags().StringVar(&serveOptions.DataRoot, "data-root", "./data", "数据根目录，保存封面、预览等数据")
+	serveCmd.Flags().StringVar(&serveOptions.AnimeOfflineDatabase, "anime-offline-database", "", "导入动漫离线数据库 manami-project/anime-offline-database")
 }

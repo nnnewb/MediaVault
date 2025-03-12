@@ -69,7 +69,7 @@ for (let index = 0; index < 10; index++) {
       </el-form>
     </el-row>
 
-    <el-table>
+    <el-table :data="data">
       <el-table-column prop="title" label="标题"></el-table-column>
       <el-table-column prop="release" label="发行日期"></el-table-column>
       <el-table-column prop="episode" label="集数"></el-table-column>
