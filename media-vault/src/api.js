@@ -132,4 +132,42 @@ export class AnimeClient {
     const payload = { page, page_size };
     return (await this.axios.post("/api/v1/anime/list", payload)).data;
   }
+
+  /**
+   * @typedef {Object} AnimeOfflineDatabaseDTO
+   * @property {number} id
+   * @property {string} title
+   * @property {string[]} sources
+   * @property {string} type
+   * @property {number} episodes
+   * @property {string} status
+   * @property {number} year
+   * @property {string} season
+   * @property {string} picture
+   * @property {string} thumbnail
+   * @property {number} duration
+   * @property {string[]} synonyms
+   * @property {string[]} tags
+   */
+
+  /**
+   * 搜索动漫
+   * @param {String} term
+   * @param {number} page
+   * @param {number} page_size
+   * @returns {Promise<ListResponse<AnimeOfflineDatabaseDTO>>}
+   */
+  async search(term, page, page_size) {
+    const payload = { term, page, page_size };
+    return (await this.axios.post("/api/v1/anime/search", payload)).data;
+  }
+
+  /**
+   * 获取动画信息
+   * @param {number} id
+   * @returns {Promise<Response<AnimeOfflineDatabaseDTO>>}
+   */
+  async info(id) {
+    return (await this.axios.get(`/api/v1/anime/info/${id}`)).data;
+  }
 }

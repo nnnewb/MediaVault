@@ -8,7 +8,7 @@ const anime_client = new AnimeClient(axios);
 const page = ref(1);
 const page_size = ref(20);
 const total = ref(0);
-const search = ref('');
+const search = ref("");
 const data = ref([]);
 
 function fetch_data(page, page_size) {
@@ -43,12 +43,14 @@ onMounted(() => {
         <el-input type="text" placeholder="输入开始搜索" v-model="search" prefix-icon="Search" clearable />
       </el-col>
       <el-col :span="4">
+        <router-link to="/anime/edit/new">
           <el-button type="primary">
             <el-icon>
               <plus />
             </el-icon>
             添加
           </el-button>
+        </router-link>
       </el-col>
     </el-row>
 
