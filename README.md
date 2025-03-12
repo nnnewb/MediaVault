@@ -4,7 +4,7 @@
 
 ## 预览
 
-
+![screenshot](./docs/images/screenshot.png)
 
 ## 开发环境
 
