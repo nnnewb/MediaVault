@@ -36,7 +36,7 @@ var serveCmd = &cobra.Command{
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := logging.Setup(
 			logging.WithZapEncoding("console"),
-			logging.WithZapOutputPath("media-vault.log"),
+			logging.WithZapOutputPath(filepath.Join(serveOptions.DataRoot, "media-vault.log")),
 			logging.WithZapEncoderConfigEncodeLevel(zapcore.CapitalColorLevelEncoder),
 			logging.WithZapLevel(zapcore.DebugLevel),
 			logging.WithZapDevelopment(true),
