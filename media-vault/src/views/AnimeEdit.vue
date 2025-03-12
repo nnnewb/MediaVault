@@ -1,8 +1,7 @@
 <script setup>
 import { AnimeClient } from "@/api.js";
 import { Picture as IconPicture } from "@element-plus/icons-vue";
-import ChooseMedia from "@/components/ChooseMedia.vue";
-import { createVNode, render } from "vue";
+import ChooseMedia from "@/components/ChooseMedia";
 
 defineProps({
   id: { required: true },
@@ -50,7 +49,9 @@ function on_select_change(value) {
 }
 
 function choose_episode_media() {
-  choose_media_dialog_visible.value = true;
+  ChooseMedia.choose_single().then((result) => {
+    console.log("choose single", result);
+  });
 }
 </script>
 
