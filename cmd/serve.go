@@ -77,14 +77,17 @@ var serveCmd = &cobra.Command{
 		inferService := service.NewMediaInfer()
 		ffmpegService := service.NewFFMPEGService(db, serveOptions.FFMPEGPath)
 		mediaService := service.NewMediaService(db, serveOptions.DataRoot, inferService, ffmpegService)
+		pathService := service.NewPathService()
 
 		// setup controller
 		mediaControllerV1 := api.NewMediaControllerV1(mediaService)
+		pathControllerV1 := api.NewPathControllerV1(pathService)
 
 		// setup routes
 		app := gin.New()
 		router := app.Group("/api")
 		mediaControllerV1.RegisterRoutes(router)
+		pathControllerV1.RegisterRoutes(router)
 
 		// start serving
 		logging.GetLogger().Info("start serving", zap.String("listen", serveOptions.ListenAddr))
