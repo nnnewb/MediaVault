@@ -31,26 +31,5 @@ func (p *Pagination) QueryOption() service.QueryOption {
 
 type OrderBy struct {
 	Column     string `json:"column"`
-	Descending *bool  `json:"descending"`
-}
-
-func (o *OrderBy) WithDefault() *OrderBy {
-	if o.Column == "" {
-		o.Column = DefaultOrderColumn
-	}
-
-	if o.Descending == nil {
-		o.Descending = new(bool)
-		*o.Descending = DefaultOrderDescending
-	}
-
-	return o
-}
-
-func (o *OrderBy) QueryOption() service.QueryOption {
-	descending := false
-	if o.Descending != nil {
-		descending = *o.Descending
-	}
-	return service.WithOrderBy(o.Column, descending)
+	Descending bool   `json:"descending"`
 }

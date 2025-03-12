@@ -46,12 +46,9 @@ func (controller *MediaControllerV1) MediaListV1(c *gin.Context) {
 		return
 	}
 
-	options := []service.QueryOption{
-		req.OrderBy.WithDefault().QueryOption(),
-		req.Pagination.WithDefault().QueryOption(),
-	}
-
-	medias, err := controller.s.List(options...)
+	pagination := service.Pagination{Page: req.Page, PageSize: req.PageSize}
+	by := service.OrderBy{Column: req.Column, Descending: req.Descending}
+	medias, count, err := controller.s.List(pagination, by)
 	if err != nil {
 		logging.GetLogger().Error("failed to list media", zap.Error(err))
 		c.AbortWithStatusJSON(http.StatusInternalServerError, ServerError(err))
@@ -62,7 +59,7 @@ func (controller *MediaControllerV1) MediaListV1(c *gin.Context) {
 	for i := 0; i < len(medias); i++ {
 		medias[i].AsDTO(&data[i])
 	}
-	c.JSON(http.StatusOK, NewResponse(0, "OK", data))
+	c.JSON(http.StatusOK, OKList(data, count))
 }
 
 func (controller *MediaControllerV1) MediaDetailV1(c *gin.Context) {
