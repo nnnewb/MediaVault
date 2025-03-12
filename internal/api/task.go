@@ -36,7 +36,7 @@ func (controller *TaskControllerV1) TaskListV1(c *gin.Context) {
 	options := []service.QueryOption{
 		req.Pagination.WithDefault().QueryOption(),
 	}
-	tasks, err := controller.taskService.List(options...)
+	tasks, total, err := controller.taskService.List(options...)
 	if err != nil {
 		logging.GetLogger().Error("failed to list tasks", zap.Error(err))
 		c.AbortWithStatusJSON(http.StatusInternalServerError, ServerError(err))
@@ -47,5 +47,5 @@ func (controller *TaskControllerV1) TaskListV1(c *gin.Context) {
 	for i := range tasks {
 		tasks[i].AsDTO(&data[i])
 	}
-	c.JSON(http.StatusOK, OK(data))
+	c.JSON(http.StatusOK, OKList(data, total))
 }

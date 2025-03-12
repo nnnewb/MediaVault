@@ -37,7 +37,6 @@ func (m *Media) AsDTO(d *MediaDTO) {
 	d.ID = m.ID
 	d.CreatedAt = m.CreatedAt
 	d.UpdatedAt = m.UpdatedAt
-	d.DeletedAt = m.DeletedAt
 	d.Path = m.Path
 	d.Name = filepath.Base(m.Path)
 	d.MediaType = m.MediaType
@@ -48,15 +47,14 @@ func (m *Media) AsDTO(d *MediaDTO) {
 }
 
 type MediaDTO struct {
-	ID            uint           `json:"id"`
-	CreatedAt     time.Time      `json:"created_at"`
-	UpdatedAt     time.Time      `json:"updated_at"`
-	DeletedAt     gorm.DeletedAt `json:"deleted_at"`
-	Path          string         `json:"path"`
-	Name          string         `json:"name"`
-	MediaType     MediaType      `json:"media_type"`
-	InformationID int64          `json:"information_id"`
-	CoverID       uint           `json:"cover_id"`
+	ID            uint      `json:"id"`
+	CreatedAt     time.Time `json:"created_at"`
+	UpdatedAt     time.Time `json:"updated_at"`
+	Path          string    `json:"path"`
+	Name          string    `json:"name"`
+	MediaType     MediaType `json:"media_type"`
+	InformationID int64     `json:"information_id"`
+	CoverID       uint      `json:"cover_id"`
 }
 
 type MediaRelationType int32
