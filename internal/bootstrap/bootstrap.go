@@ -26,6 +26,7 @@ func BootstrapDataFolder(dataRoot string) error {
 func BootstrapDatabase(db *gorm.DB) error {
 	err := db.AutoMigrate(
 		&models.Media{},
+		&models.MediaCover{},
 		&models.MediaRelation{},
 		&models.AnimeInformation{},
 		&models.AnimeLocalization{},

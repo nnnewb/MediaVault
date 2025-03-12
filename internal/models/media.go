@@ -1,6 +1,8 @@
 package models
 
 import (
+	"time"
+
 	"gorm.io/gorm"
 )
 
@@ -17,9 +19,42 @@ type Media struct {
 	Path          string    `gorm:"path;type:varchar(255);"` // 文件路径
 	MediaType     MediaType `gorm:"title;type:integer;"`     // 媒体类型
 	InformationID int64     `gorm:"information_id"`          // 信息外键 ID
+
+	// preload fields
+	MediaCover *MediaCover
 }
 
 func (*Media) TableName() string { return "media" }
+
+func (m *Media) ToDTO() MediaDTO {
+	var d MediaDTO
+	m.AsDTO(&d)
+	return d
+}
+
+func (m *Media) AsDTO(d *MediaDTO) {
+	d.ID = m.ID
+	d.CreatedAt = m.CreatedAt
+	d.UpdatedAt = m.UpdatedAt
+	d.DeletedAt = m.DeletedAt
+	d.Path = m.Path
+	d.MediaType = m.MediaType
+	d.InformationID = m.InformationID
+	if m.MediaCover != nil {
+		d.CoverID = m.MediaCover.ID
+	}
+}
+
+type MediaDTO struct {
+	ID            uint           `json:"id"`
+	CreatedAt     time.Time      `json:"created_at"`
+	UpdatedAt     time.Time      `json:"updated_at"`
+	DeletedAt     gorm.DeletedAt `json:"deleted_at"`
+	Path          string         `json:"path"`
+	MediaType     MediaType      `json:"media_type"`
+	InformationID int64          `json:"information_id"`
+	CoverID       uint           `json:"cover_id"`
+}
 
 type MediaRelationType int32
 

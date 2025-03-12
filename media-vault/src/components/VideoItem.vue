@@ -1,5 +1,6 @@
 <script setup>
-import defaultCover from '@/assets/cover.png'
+import defaultCover from '@/assets/cover.png';
+
 const props = defineProps({
     media: {
         type: Object,
@@ -32,6 +33,6 @@ const cover = props.media.cover || defaultCover;
 
 <style scoped>
 .card {
-    width: 440px;
+    width: 340px;
 }
 </style>
