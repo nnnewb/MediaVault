@@ -45,7 +45,7 @@ func (a *AnimeOfflineDatabase) AsDTO(dto *AnimeOfflineDatabaseDTO) {
 	dto.Season = a.Season
 	dto.Picture = a.Picture
 	dto.Thumbnail = a.Thumbnail
-	dto.Duration = a.Duration
+	dto.Duration = int32(a.Duration.Seconds())
 	dto.Synonyms = make([]string, 0, len(a.Synonyms))
 	for _, synonym := range a.Synonyms {
 		dto.Synonyms = append(dto.Synonyms, synonym.Synonym)
@@ -73,17 +73,17 @@ type AnimeOfflineDatabaseTag struct {
 func (*AnimeOfflineDatabaseTag) TableName() string { return "anime_offline_database_tag" }
 
 type AnimeOfflineDatabaseDTO struct {
-	ID        uint          `json:"id"`
-	Title     string        `json:"title"`
-	Sources   []string      `json:"sources"`
-	Type      string        `json:"type"`
-	Episodes  int32         `json:"episodes"`
-	Status    string        `json:"status"`
-	Year      int32         `json:"year"`
-	Season    string        `json:"season"`
-	Picture   string        `json:"picture"`
-	Thumbnail string        `json:"thumbnail"`
-	Duration  time.Duration `json:"duration"`
-	Synonyms  []string      `json:"synonyms"`
-	Tags      []string      `json:"tags"`
+	ID        uint     `json:"id"`
+	Title     string   `json:"title"`
+	Sources   []string `json:"sources"`
+	Type      string   `json:"type"`
+	Episodes  int32    `json:"episodes"`
+	Status    string   `json:"status"`
+	Year      int32    `json:"year"`
+	Season    string   `json:"season"`
+	Picture   string   `json:"picture"`
+	Thumbnail string   `json:"thumbnail"`
+	Duration  int32    `json:"duration"`
+	Synonyms  []string `json:"synonyms"`
+	Tags      []string `json:"tags"`
 }
